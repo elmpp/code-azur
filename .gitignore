@@ -21,3 +21,17 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+
+
+
+
+*.pre-*
+*.post-*
+*.skip.*
+*.delete.*
+*.deleteable.*
+*.deleteable
+*.ignore.*
+*.ignore
+*.example.*
