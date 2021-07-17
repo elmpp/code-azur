@@ -1,15 +1,24 @@
-type ProductNameUnion = 'Aged Brie' | 'Backstage passes to a TAFKAL80ETC concert' | 'Sulfuras, Hand of Ragnaros' | 'Conjured'
+export type ItemNameUnion = 'Aged Brie' | 'Backstage passes to a TAFKAL80ETC concert' | 'Sulfuras, Hand of Ragnaros' | 'Conjured'
 
 export class Item {
-  name: ProductNameUnion; // Bring it, Goblin boy
+  name: ItemNameUnion; // Bring it, Goblin boy
   sellIn: number;
   quality: number;
 
-  constructor(name: ProductNameUnion, sellIn: number, quality: number) {
+  constructor(name: ItemNameUnion, sellIn: number, quality: number) {
     this.name = name;
     this.sellIn = sellIn;
     this.quality = quality;
   }
+}
+
+export type ServiceResItem = {
+  name: ItemNameUnion
+  quality: number
+}
+export type ServiceRes = {
+  day: number
+  items: ServiceResItem[]
 }
 
 export class Service {
@@ -17,21 +26,51 @@ export class Service {
 
   constructor(items: Item[] = []) {
     this.items = items;
-    console.log(`this.items :>> `, this.items)
   }
 
   /**
-   @return number  Max days when quality will vary with advancing date for any product
+   @return number  Latest expiry (i.e. quality = 0) of all products
    */
-  getAllProductsExpiry() {
+  getMaxExpiryDay() {
+    const qualityAtSellInBrie = this.getProductQualityForDay('Aged Brie', this.getProduct('Aged Brie')['sellIn'])
+    const qualityAtSellInConjured = this.getProductQualityForDay('Conjured', this.getProduct('Conjured')['sellIn'])
 
+    return Math.max(
+      this.getProduct('Backstage passes to a TAFKAL80ETC concert')['sellIn'] + 1,
+      this.getProduct('Aged Brie')['sellIn'] + Math.ceil(qualityAtSellInBrie / 2),
+      this.getProduct('Conjured')['sellIn'] + Math.ceil(qualityAtSellInConjured / 4),
+    )
   }
 
-  getQualityForDay(name: ProductNameUnion, day: number): number | null {
+  getAllForDay(day: number): ServiceRes {
+    return {
+      day,
+      items: [
+        {
+          name: 'Backstage passes to a TAFKAL80ETC concert',
+          quality: this.getProductQualityForDay('Backstage passes to a TAFKAL80ETC concert', day),
+        },
+        {
+          name: 'Aged Brie',
+          quality: this.getProductQualityForDay('Aged Brie', day),
+        },
+        {
+          name: 'Sulfuras, Hand of Ragnaros',
+          quality: this.getProductQualityForDay('Sulfuras, Hand of Ragnaros', day),
+        },
+        {
+          name: 'Conjured',
+          quality: this.getProductQualityForDay('Conjured', day),
+        },
+      ],
+    }
+  }
+
+  private getProductQualityForDay(name: ItemNameUnion, day: number): number {
 
     const product = this.getProduct(name)
 
-    if (product.name === 'Sulfuras, Hand of Ragnaros') return null
+    // if (product.name === 'Sulfuras, Hand of Ragnaros') return null
 
     const appreciatingQualityDeltaForDay = (product: Item, day: number): number => {
       const {name, sellIn, quality: startingQuality} = product
@@ -41,6 +80,8 @@ export class Service {
 
       switch (name) {
         case 'Aged Brie':
+          quality = 1
+          break
         case 'Backstage passes to a TAFKAL80ETC concert':
           if (daysTillSellIn <= 5) quality = 3
           else if (daysTillSellIn <= 10) quality = 2
@@ -54,13 +95,11 @@ export class Service {
 
     const depreciatingQualityDeltaForDay = (product: Item, day: number): number => {
       const {name, sellIn, quality: startingQuality} = product
-      if (day <= sellIn) throw new Error(`Cannot call depreciatingQualityDeltaForDay on or before sellIn`)
       let quality: number
 
       switch (name) {
         case 'Backstage passes to a TAFKAL80ETC concert':
           throw new Error(`'Backstage passes to a TAFKAL80ETC concert' do not depreciate over time`)
-          break
         case 'Conjured':
           quality = -4
           break
@@ -74,6 +113,13 @@ export class Service {
       const {name, sellIn, quality: startingQuality} = product
       return (new Array(day).fill('').reduce((currentQuality, _, currentDay) => {
         return Math.min(currentQuality + appreciatingQualityDeltaForDay(product, currentDay), 50)
+      }, startingQuality))
+    }
+
+    const depreciatingQualityForDay = (product: Item, day: number): number => {
+      const {name, sellIn, quality: startingQuality} = product
+      return (new Array(day).fill('').reduce((currentQuality, _, currentIdx) => {
+        return currentQuality + depreciatingQualityDeltaForDay(product, (currentIdx + sellIn))
       }, 0))
     }
 
@@ -88,76 +134,19 @@ export class Service {
       else {
         const qualityAtSellIn: number = appreciatingQualityForDay(product, product.sellIn)
         if (product.name === 'Backstage passes to a TAFKAL80ETC concert') return 0
-        return qualityAtSellIn + depreciatingQualityDeltaForDay(product, day)
+        const qualityDepreciated = depreciatingQualityForDay(product, day - sellIn)
+        return Math.max(qualityAtSellIn + qualityDepreciated, 0)
       }
     }
 
     return qualityForDay(product, day)
   }
 
-  private getProduct(name: ProductNameUnion): Item {
+  private getProduct(name: ItemNameUnion): Item {
     const product = this.items.find(p => p.name === name)
     if (!product) {
       throw new Error(`Product ${name} has not been registered`)
     }
     return product
-  }
-
-  updateQuality() {
-    for (let i = 0; i < this.items.length; i++) {
-      if (
-        this.items[i].name != "Aged Brie" &&
-        this.items[i].name != "Backstage passes to a TAFKAL80ETC concert"
-      ) {
-        if (this.items[i].quality > 0) {
-          if (this.items[i].name != "Sulfuras, Hand of Ragnaros") {
-            this.items[i].quality = this.items[i].quality - 1;
-          }
-        }
-      } else {
-        if (this.items[i].quality < 50) {
-          this.items[i].quality = this.items[i].quality + 1;
-          if (
-            this.items[i].name == "Backstage passes to a TAFKAL80ETC concert"
-          ) {
-            if (this.items[i].sellIn < 11) {
-              if (this.items[i].quality < 50) {
-                this.items[i].quality = this.items[i].quality + 1;
-              }
-            }
-            if (this.items[i].sellIn < 6) {
-              if (this.items[i].quality < 50) {
-                this.items[i].quality = this.items[i].quality + 1;
-              }
-            }
-          }
-        }
-      }
-      if (this.items[i].name != "Sulfuras, Hand of Ragnaros") {
-        this.items[i].sellIn = this.items[i].sellIn - 1;
-      }
-      if (this.items[i].sellIn < 0) {
-        if (this.items[i].name != "Aged Brie") {
-          if (
-            this.items[i].name != "Backstage passes to a TAFKAL80ETC concert"
-          ) {
-            if (this.items[i].quality > 0) {
-              if (this.items[i].name != "Sulfuras, Hand of Ragnaros") {
-                this.items[i].quality = this.items[i].quality - 1;
-              }
-            }
-          } else {
-            this.items[i].quality =
-              this.items[i].quality - this.items[i].quality;
-          }
-        } else {
-          if (this.items[i].quality < 50) {
-            this.items[i].quality = this.items[i].quality + 1;
-          }
-        }
-      }
-    }
-
-    return this.items;
   }
 }
