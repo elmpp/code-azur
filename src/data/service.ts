@@ -15,6 +15,7 @@ export class Item {
 export type ServiceResItem = {
   name: ItemNameUnion
   quality: number
+  sellIn: number
 }
 export type ServiceRes = {
   day: number
@@ -49,18 +50,22 @@ export class Service {
         {
           name: 'Backstage passes to a TAFKAL80ETC concert',
           quality: this.getProductQualityForDay('Backstage passes to a TAFKAL80ETC concert', day),
+          sellIn: this.getProduct('Backstage passes to a TAFKAL80ETC concert').sellIn,
         },
         {
           name: 'Aged Brie',
           quality: this.getProductQualityForDay('Aged Brie', day),
+          sellIn: this.getProduct('Aged Brie').sellIn,
         },
         {
           name: 'Sulfuras, Hand of Ragnaros',
           quality: this.getProductQualityForDay('Sulfuras, Hand of Ragnaros', day),
+          sellIn: this.getProduct('Sulfuras, Hand of Ragnaros').sellIn,
         },
         {
           name: 'Conjured',
           quality: this.getProductQualityForDay('Conjured', day),
+          sellIn: this.getProduct('Conjured').sellIn,
         },
       ],
     }
@@ -73,7 +78,7 @@ export class Service {
     // if (product.name === 'Sulfuras, Hand of Ragnaros') return null
 
     const appreciatingQualityDeltaForDay = (product: Item, day: number): number => {
-      const {name, sellIn, quality: startingQuality} = product
+      const {name, sellIn} = product
       if (day > sellIn) throw new Error(`Cannot call appreciatingQualityDeltaForDay after sellIn`)
       const daysTillSellIn = sellIn - day
       let quality: number
@@ -93,8 +98,8 @@ export class Service {
       return quality
     }
 
-    const depreciatingQualityDeltaForDay = (product: Item, day: number): number => {
-      const {name, sellIn, quality: startingQuality} = product
+    const depreciatingQualityDeltaForDay = (product: Item, _day: number): number => {
+      const {name} = product
       let quality: number
 
       switch (name) {
@@ -110,14 +115,14 @@ export class Service {
     }
 
     const appreciatingQualityForDay = (product: Item, day: number): number => {
-      const {name, sellIn, quality: startingQuality} = product
+      const {quality: startingQuality} = product
       return (new Array(day).fill('').reduce((currentQuality, _, currentDay) => {
         return Math.min(currentQuality + appreciatingQualityDeltaForDay(product, currentDay), 50)
       }, startingQuality))
     }
 
     const depreciatingQualityForDay = (product: Item, day: number): number => {
-      const {name, sellIn, quality: startingQuality} = product
+      const {sellIn} = product
       return (new Array(day).fill('').reduce((currentQuality, _, currentIdx) => {
         return currentQuality + depreciatingQualityDeltaForDay(product, (currentIdx + sellIn))
       }, 0))

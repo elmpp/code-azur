@@ -62,46 +62,4 @@ describe("service", () => {
       doExpects('Sulfuras, Hand of Ragnaros', day)
       doExpects('Conjured', day)
     })
-    // testMap[0].forEach(([product, expectations]) => {
-    //   // for (const [day, expectedQuality] of expectations) {
-    //   expectations.forEach((expectedQuality, day) => {
-    //     const quality = service.getQualityForDay(product.name, day)
-
-    //     if (quality !== expectedQuality) {
-    //       console.log({
-    //         day,
-    //         quality,
-    //         expectedQuality,
-    //         product,
-    //       })
-    //     }
-    //     expect(quality).toEqual(expectedQuality)
-    //   })
-    // })
-  });
-
-  // it("returns quality for day", () => {
-
-  //   // const qualityForDay1 = service.getQualityForDay('Aged Brie', 3)
-  //   // const qualityForDay2 = service.getQualityForDay('Backstage passes to a TAFKAL80ETC concert', 3)
-  //   // const qualityForDay3 = service.getQualityForDay('Sulfuras, Hand of Ragnaros', 3)
-  //   // const qualityForDay4 = service.getQualityForDay('Conjured', 3)
-
-  //   testMap.forEach(([product, expectations]) => {
-  //     // for (const [day, expectedQuality] of expectations) {
-  //     expectations.forEach((expectedQuality, day) => {
-  //       const quality = service.getQualityForDay(product.name, day)
-
-  //       if (quality !== expectedQuality) {
-  //         console.log({
-  //           day,
-  //           quality,
-  //           expectedQuality,
-  //           product,
-  //         })
-  //       }
-  //       expect(quality).toEqual(expectedQuality)
-  //     })
-  //   })
-  // });
 });
